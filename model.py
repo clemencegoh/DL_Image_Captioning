@@ -5,23 +5,27 @@ from torch.nn.utils.rnn import pack_padded_sequence
 
 
 class EncoderCNN(nn.Module):
-    def __init__(self, embed_size):
+    def _init_(self, embed_size):
         """Load the pretrained ResNet-152 and replace top fc layer."""
-        super(EncoderCNN, self).__init__()
-        densenet = models.densenet161(pretrained=True)
-        modules = list(densenet.children())[:-1]  # delete the last fc layer.
-        self.densenet = nn.Sequential(*modules)
-        self.linear = nn.Linear(densenet.classifier.in_features, embed_size)
+        super(EncoderCNN, self)._init_()
+        resnet = models.densenet161(pretrained=True)
+        # resnet = models.resnet152(pretrained=True)
+        modules = list(resnet.children())[:-1]  # delete the last fc layer.
+        self.resnet = nn.Sequential(*modules)
+        self.linear = nn.Linear(resnet.classifier.in_features, embed_size)
+        # self.linear = nn.Linear(resnet.fc.in_features, embed_size)
         self.bn = nn.BatchNorm1d(embed_size, momentum=0.01)
 
     def forward(self, images):
         """Extract feature vectors from input images."""
         with torch.no_grad():
-            features = self.densenet(images)
-        features = features.reshape(features.size(0), -1)
-        features = self.bn(self.linear(features))
-        return features
-
+            features = self.resnet(images)
+        out = F.relu(features, inplace=True)
+        out = F.adaptive_avg_pool2d(out, (1, 1)).view(features.size(0), -1)
+        out = out.reshape(out.size(0), -1)
+        out = self.linear(out)
+        out = self.bn(out)
+        return out
 
 class DecoderRNN(nn.Module):
     def __init__(self, embed_size, hidden_size, vocab_size, num_layers, max_seq_length=20):
