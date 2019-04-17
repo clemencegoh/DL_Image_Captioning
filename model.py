@@ -5,8 +5,9 @@ from torch.nn.utils.rnn import pack_padded_sequence
 
 
 class EncoderCNN(nn.Module):
-    def _init_(self, embed_size):
+    def __init__(self, embed_size):
         """Load the pretrained ResNet-152 and replace top fc layer."""
+        # super(EncoderCNN, self)._init_()
         resnet = models.densenet161(pretrained=True)
         # resnet = models.resnet152(pretrained=True)
         modules = list(resnet.children())[:-1]  # delete the last fc layer.
