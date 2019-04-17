@@ -8,16 +8,16 @@ class EncoderCNN(nn.Module):
     def __init__(self, embed_size):
         """Load the pretrained ResNet-152 and replace top fc layer."""
         super(EncoderCNN, self).__init__()
-        nn = models.densenet161(pretrained=True)
-        modules = list(nn.children())[:-1]  # delete the last fc layer.
-        self.resnet = nn.Sequential(*modules)
+        densenet = models.densenet161(pretrained=True)
+        modules = list(densenet.children())[:-1]  # delete the last fc layer.
+        self.densenet = nn.Sequential(*modules)
         self.linear = nn.Linear(nn.fc.in_features, embed_size)
         self.bn = nn.BatchNorm1d(embed_size, momentum=0.01)
 
     def forward(self, images):
         """Extract feature vectors from input images."""
         with torch.no_grad():
-            features = self.resnet(images)
+            features = self.densenet(images)
         features = features.reshape(features.size(0), -1)
         features = self.bn(self.linear(features))
         return features
