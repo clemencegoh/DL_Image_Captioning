@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 from torch.nn.utils.rnn import pack_padded_sequence
+import torch.nn.functional as F
 
 
 class EncoderCNN(nn.Module):
