@@ -11,7 +11,7 @@ class EncoderCNN(nn.Module):
         densenet = models.densenet161(pretrained=True)
         modules = list(densenet.children())[:-1]  # delete the last fc layer.
         self.densenet = nn.Sequential(*modules)
-        self.linear = nn.Linear(nn.fc.in_features, embed_size)
+        self.linear = nn.Linear(densenet.fc.in_features, embed_size)
         self.bn = nn.BatchNorm1d(embed_size, momentum=0.01)
 
     def forward(self, images):

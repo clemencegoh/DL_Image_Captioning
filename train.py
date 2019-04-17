@@ -23,6 +23,7 @@ def main(args):
     transform = transforms.Compose([
         transforms.RandomCrop(args.crop_size),
         transforms.RandomHorizontalFlip(),
+        transforms.Resize(224),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406),
                              (0.229, 0.224, 0.225))])
