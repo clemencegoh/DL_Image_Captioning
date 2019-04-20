@@ -47,8 +47,8 @@ def main(args):
     optimizer = torch.optim.Adam(params, lr=args.learning_rate)
 
     # save loss
-    loss_arr = [[] for i in args.num_epochs]
-    perp_arr = [[] for i in args.num_epochs]
+    loss_arr = [[] for i in range(args.num_epochs)]
+    perp_arr = [[] for i in range(args.num_epochs)]
 
     # Train the models
     total_step = len(data_loader)
