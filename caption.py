@@ -69,7 +69,9 @@ def main(args):
 
 
 
-def caption(image, encoder_path, decoder_path,
+def caption(image,
+            encoder_path='model3/encoder-2-2000.ckpt',
+            decoder_path='model3/decoder-2-2000.ckpt',
             vocab_path='data/vocab.pkl',
             embed_size=256,
             hidden_size=512,
