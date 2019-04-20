@@ -65,7 +65,7 @@ def main(args):
 
                 score = sentence_bleu([captions[idx]], hypothesis)
                 total = total + score
-                print("Actual", caption[idx])
+                print("Actual", captions[idx])
                 print("Hypothesis", hypothesis)
                 print(score)
 
