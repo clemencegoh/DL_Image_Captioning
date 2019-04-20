@@ -96,7 +96,8 @@ def main(args):
     with open('train_loss.txt', 'w') as f:
         f.write(str(loss_arr))
     with open('train_perp.txt', 'w') as f:
-        f.write(str(perp_arr))
+        f.write(str(perp_arr
+                    ))
 
 
 if __name__ == '__main__':
