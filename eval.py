@@ -50,6 +50,7 @@ def main(args):
             for idx, caption in enumerate(captions):
                 # 1 corresponds to <start>, 2 corresponds to <end>
                 captions[idx] = caption[caption.index(1): caption.index(2)]
+                captions[idx] = [vocab.idx2word[i] for i in captions[idx]]
 
             # Remove start and end from the output
             outputs = outputs.cpu().data.tolist()
