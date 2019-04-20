@@ -47,56 +47,53 @@ def main(args):
     optimizer = torch.optim.Adam(params, lr=args.learning_rate)
 
     # save loss
-    loss_arr = []
-    perp_arr = []
+    loss_arr = [[] for i in args.num_epochs]
+    perp_arr = [[] for i in args.num_epochs]
 
     # Train the models
     total_step = len(data_loader)
-    for epoch in range(args.num_epochs):
-        epoch_loss = []
-        epoch_perp = []
+    try:
+        for epoch in range(args.num_epochs):
+            for i, (images, captions, lengths) in enumerate(data_loader):
 
-        for i, (images, captions, lengths) in enumerate(data_loader):
+                # Set mini-batch dataset
+                images = images.to(device)
+                captions = captions.to(device)
+                targets = pack_padded_sequence(captions, lengths, batch_first=True)[0]
 
-            # Set mini-batch dataset
-            images = images.to(device)
-            captions = captions.to(device)
-            targets = pack_padded_sequence(captions, lengths, batch_first=True)[0]
+                # Forward, backward and optimize
+                features = encoder(images)
+                outputs = decoder(features, captions, lengths)
+                loss = criterion(outputs, targets)
+                decoder.zero_grad()
+                encoder.zero_grad()
+                loss.backward()
+                optimizer.step()
 
-            # Forward, backward and optimize
-            features = encoder(images)
-            outputs = decoder(features, captions, lengths)
-            loss = criterion(outputs, targets)
-            decoder.zero_grad()
-            encoder.zero_grad()
-            loss.backward()
-            optimizer.step()
+                # Print log info
+                if i % args.log_step == 0:
+                    l = loss.item()
+                    perp = np.exp(loss.item())
 
-            # Print log info
-            if i % args.log_step == 0:
-                l = loss.item()
-                perp = np.exp(loss.item())
+                    loss_arr[epoch].append(l)
+                    perp_arr[epoch].append(perp)
 
-                epoch_loss.append(l)
-                epoch_perp.append(perp)
+                    print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Perplexity: {:5.4f}'
+                        .format(epoch + 1, args.num_epochs, i, total_step, l, perp))
 
-                print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Perplexity: {:5.4f}'
-                      .format(epoch, args.num_epochs, i, total_step, l, perp))
-
-                # Save the model checkpoints
-            if (i + 1) % args.save_step == 0:
-                torch.save(decoder.state_dict(), os.path.join(
-                    args.model_path, 'decoder-{}-{}.ckpt'.format(epoch + 1, i + 1)))
-                torch.save(encoder.state_dict(), os.path.join(
-                    args.model_path, 'encoder-{}-{}.ckpt'.format(epoch + 1, i + 1)))
-
-        loss_arr.append(epoch_loss)
-        perp_arr.append(epoch_perp)
-
-    with open('train_loss.txt', 'w') as f:
-        f.write(str(loss_arr))
-    with open('train_perp.txt', 'w') as f:
-        f.write(str(perp_arr))
+                    # Save the model checkpoints
+                if (i + 1) % args.save_step == 0:
+                    torch.save(decoder.state_dict(), os.path.join(
+                        args.model_path, 'decoder-{}-{}.ckpt'.format(epoch + 1, i + 1)))
+                    torch.save(encoder.state_dict(), os.path.join(
+                        args.model_path, 'encoder-{}-{}.ckpt'.format(epoch + 1, i + 1)))
+    finally:
+        with open(os.path.join(args.model_path, 'train_loss.txt'), 'w') as f:
+            f.write(args + '\n')
+            f.write(str(loss_arr))
+        with open(os.path.join(args.model_path, 'train_perp.txt'), 'w') as f:
+            f.write(args + '\n')
+            f.write(str(perp_arr))
 
 
 if __name__ == '__main__':
@@ -116,7 +113,8 @@ if __name__ == '__main__':
     parser.add_argument('--num_layers', type=int, default=3, help='number of layers in lstm')
 
     parser.add_argument('--num_epochs', type=int, default=10)
-    parser.add_argument('--batch_size', type=int, default=32)
+    # Batch norm layer cannot deal with single value. To choose such that 414113 mod (batch_size) != 1.
+    parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--num_workers', type=int, default=2)
     parser.add_argument('--learning_rate', type=float, default=0.001)
     args = parser.parse_args()
