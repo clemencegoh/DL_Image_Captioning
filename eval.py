@@ -72,6 +72,8 @@ def main(args):
 
                 # Print log info
                 if i % args.log_step == 0:
+                    print(captions[-1])
+                    print(hypothesis)
                     print('Step [{}/{}], Avg BLEU: {:.4f}'
                         .format(i+1, total_step, total_bleu/total_samples))
     finally:
