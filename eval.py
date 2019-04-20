@@ -36,46 +36,46 @@ def main(args):
     decoder.eval()
 
     # Train the models
-    total_step = len(data_loader)
-    with torch.no_grad():
-        total = 0
-        for i, (images, captions, lengths) in enumerate(data_loader):
-            images = images.to(device)
+    try:
+        total_step = len(data_loader)
+        total_bleu = 0
+        total_samples = 0
+        with torch.no_grad():
+            for i, (images, captions, lengths) in enumerate(data_loader):
+                images = images.to(device)
+                total_samples += len(captions)
 
-            features = encoder(images)
-            outputs = decoder.sample(features)
+                features = encoder(images)
+                outputs = decoder.sample(features)
 
-            # Remove padding from captions
-            captions = captions.cpu().data.tolist()
-            for idx, caption in enumerate(captions):
-                # 1 corresponds to <start>, 2 corresponds to <end>
-                captions[idx] = caption[caption.index(1)+1: caption.index(2)]
-                captions[idx] = [vocab.idx2word[i] for i in captions[idx]]
+                # Remove padding from captions
+                captions = captions.cpu().data.tolist()
+                for idx, caption in enumerate(captions):
+                    # 1 corresponds to <start>, 2 corresponds to <end>
+                    captions[idx] = caption[caption.index(1)+1: caption.index(2)]
+                    captions[idx] = [vocab.idx2word[i] for i in captions[idx]]
 
-            # Remove start and end from the output
-            outputs = outputs.cpu().data.tolist()
-            for idx, output in enumerate(outputs):
-                hypothesis = []
-                for idx_word in output:
-                    if idx_word == 1:
-                        hypothesis = []
-                    elif idx_word == 2:
-                        break
-                    else:
-                        hypothesis.append(vocab.idx2word[idx_word])
+                # Remove start and end from the output
+                outputs = outputs.cpu().data.tolist()
+                for idx, output in enumerate(outputs):
+                    hypothesis = []
+                    for idx_word in output:
+                        if idx_word == 1:
+                            hypothesis = []
+                        elif idx_word == 2:
+                            break
+                        else:
+                            hypothesis.append(vocab.idx2word[idx_word])
 
-                score = sentence_bleu([captions[idx]], hypothesis)
-                total = total + score
-                print("Actual", captions[idx])
-                print("Hypothesis", hypothesis)
-                print(score)
+                    score = sentence_bleu([captions[idx]], hypothesis)
+                    total_bleu = total_bleu + score
 
-            # Print log info
-            if i % args.log_step == 0:
-                print('Step [{}/{}], Avg BLEU: {:.4f}'
-                      .format(i+1, total_step, total/((i+1)*data_loader.batch_size)))
-
-        avg = total/len(data_loader.dataset)
+                # Print log info
+                if i % args.log_step == 0:
+                    print('Step [{}/{}], Avg BLEU: {:.4f}'
+                        .format(i+1, total_step, total_bleu/total_samples))
+    finally:
+        avg = total_bleu/total_samples
         print(avg)
 
 
