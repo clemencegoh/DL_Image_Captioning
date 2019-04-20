@@ -79,7 +79,7 @@ def main(args):
                     perp_arr[epoch].append(perp)
 
                     print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Perplexity: {:5.4f}'
-                        .format(epoch + 1, args.num_epochs, i, total_step, l, perp))
+                        .format(epoch+1, args.num_epochs, i+1, total_step, l, perp))
 
                     # Save the model checkpoints
                 if (i + 1) % args.save_step == 0:
@@ -89,10 +89,10 @@ def main(args):
                         args.model_path, 'encoder-{}-{}.ckpt'.format(epoch + 1, i + 1)))
     finally:
         with open(os.path.join(args.model_path, 'train_loss.txt'), 'w') as f:
-            f.write(args + '\n')
+            f.write(str(args) + '\n')
             f.write(str(loss_arr))
         with open(os.path.join(args.model_path, 'train_perp.txt'), 'w') as f:
-            f.write(args + '\n')
+            f.write(str(args) + '\n')
             f.write(str(perp_arr))
 
 
