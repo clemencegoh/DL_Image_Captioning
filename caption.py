@@ -95,8 +95,8 @@ def caption(image, encoder_path, decoder_path,
     decoder = decoder.to(device)
 
     # Load the trained model parameters
-    encoder.load_state_dict(torch.load(encoder_path))
-    decoder.load_state_dict(torch.load(decoder_path))
+    encoder.load_state_dict(torch.load(encoder_path), strict=False)
+    decoder.load_state_dict(torch.load(decoder_path), strict=False)
 
     # Prepare an image
     image = load_image(image, transform)
