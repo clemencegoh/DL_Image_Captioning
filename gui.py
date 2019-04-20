@@ -9,6 +9,7 @@ import pandas as pd
 import torch.nn as nn
 import torchvision.transforms as transforms
 import torchvision.models as models
+from caption import caption
 
 
 class ModeController:
@@ -93,25 +94,30 @@ class PredictImage:
             self.results_txt.set("No image.")
             return
         try:
-            model
-        except NameError:
-            self.results_txt.set("No model. Check path set in script.")
-            return
+            result = caption(self.img)
+            self.results_txt.set(result)
+        except:
+            self.results_txt.set("Image path invalid")
 
-        model.eval()
-        with torch.no_grad():
-            t_img = transform(self.img)
-            output = model(t_img.unsqueeze(0))
-            output = output.squeeze(0)
-            output = torch.sigmoid(output)
-            output = output.data.tolist()
+        #     model
+        # except NameError:
+        #     self.results_txt.set("No model. Check path set in script.")
+        #     return
+        #
+        # model.eval()
+        # with torch.no_grad():
+        #     t_img = transform(self.img)
+        #     output = model(t_img.unsqueeze(0))
+        #     output = output.squeeze(0)
+        #     output = torch.sigmoid(output)
+        #     output = output.data.tolist()
+        #
+        #     output = sorted(((val, idx) for idx, val in enumerate(output)), reverse=True)
+        #
+        #     msg = ""
+        #     for val, idx in output:
+        #         msg += f"{IMAGE_SET[idx]}: {val:.6f}\n"
 
-            output = sorted(((val, idx) for idx, val in enumerate(output)), reverse=True)
-            
-            msg = ""
-            for val, idx in output:
-                msg += f"{IMAGE_SET[idx]}: {val:.6f}\n"
-            self.results_txt.set(msg)
 
 
 class ViewResults():
