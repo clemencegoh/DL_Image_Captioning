@@ -41,31 +41,40 @@ def main(args):
         total = 0
         for i, (images, captions, lengths) in enumerate(data_loader):
             images = images.to(device)
-            captions = captions.to(device)
 
-            predict = []
-            actual = []
             features = encoder(images)
             outputs = decoder.sample(features)
-            for j in outputs[0]:
-                predict.append(vocab.idx2word[j.item()])
-                if vocab.idx2word[j.item()] == "<end>":
-                    break
-            for j in captions[0]:
-                actual.append(vocab.idx2word[j.item()])
-            # sf = SmoothingFunction()
-            score = sentence_bleu([actual], predict)
-            total = total + score
-            print(predict)
-            print(actual)
-            print(score)
+
+            # Remove padding from captions
+            captions = captions.cpu().data.tolist()
+            for idx, caption in enumerate(captions):
+                # 1 corresponds to <start>, 2 corresponds to <end>
+                captions[idx] = caption[caption.index(1): caption.index(2)]
+
+            # Remove start and end from the output
+            outputs = outputs.cpu().data.tolist()
+            for idx, output in enumerate(outputs):
+                hypothesis = []
+                for idx_word in output:
+                    if idx_word == 1:
+                        hypothesis = []
+                    elif idx_word == 2:
+                        break
+                    else:
+                        hypothesis.append(vocab.idx2word[idx_word])
+
+                score = sentence_bleu([captions[idx]], hypothesis)
+                total = total + score
+                print("Actual", caption[idx])
+                print("Hypothesis", hypothesis)
+                print(score)
 
             # Print log info
             if i % args.log_step == 0:
                 print('Step [{}/{}], Avg BLEU: {:.4f}'
-                      .format(i, total_step, total/(i+1)))
+                      .format(i+1, total_step, total/(i+1)*data_loader.batch_size))
 
-        avg = total/i
+        avg = total/len(data_loader.dataset)
         print(avg)
 
 
