@@ -5,9 +5,6 @@ from tkinter import filedialog, messagebox
 
 
 import torch
-import matplotlib.pyplot as plt
-import numpy as np
-import argparse
 import pickle
 import os
 from torchvision import transforms
@@ -86,12 +83,13 @@ class ModeController:
     def __init__(self, master):
         self.master = master
 
-        self.mode_frame = Frame(root, bd=1)
-        self.mode_frame.pack(side=tkinter.TOP, fill=tkinter.X)
-
-        self.predict = Button(self.mode_frame, text="Predict Image", command=self.prediction_screen)
-        self.predict.pack(side=tkinter.LEFT)
-
+        # self.mode_frame = Frame(root, bd=1)
+        # self.mode_frame.pack(side=tkinter.TOP, fill=tkinter.X)
+        #
+        # self.predict = Button(self.mode_frame, text="Predict Image", command=self.prediction_screen)
+        # self.predict.pack(side=tkinter.LEFT)
+        #
+        # # self.
 
         self.activity_frame = Frame(root, bd=1)
         self.activity_frame.pack(side=tkinter.BOTTOM, fill=tkinter.BOTH, expand=1)
@@ -118,7 +116,11 @@ class PredictImage:
         self.image = Label(self.master, text="Image")
         self.image.grid(row=0, column=0, sticky='nesw')
 
-        self.browse = Button(self.master, text="Browse", command=self.read_image, width=20, height=3)
+        self.browse = Button(self.master,
+                             text="Browse",
+                             command=self.read_image,
+                             width=20,
+                             height=3)
         self.browse.grid(row=1, column=0)
 
         # self.results_txt = tkinter.StringVar()
@@ -151,8 +153,9 @@ class PredictImage:
         path = filedialog.askopenfilename(initialdir='.', title='Select file')
         if path:
             try:
-                self.path = path
-                self.img = Image.open(path).convert("RGB")
+                img = Image.open(path)
+                img.thumbnail((400, 300), Image.ANTIALIAS)
+                self.img = img
                 photo = ImageTk.PhotoImage(self.img)
                 self.image.image = photo
                 self.image.configure(image=photo)
@@ -165,7 +168,10 @@ class PredictImage:
             return
         print(self.path)
         try:
-            result = Caption(self.path)
+            result = Caption(self.path,
+                             encoder_path='model3/encoder-10-3000.ckpt',
+                             decoder_path='model3/decoder-10-3000.ckpt',
+                             vocab_path='data/vocab.pkl')
             self.results_txt.set(result)
         except Exception as e:
             self.results_txt.set("Error: {}".format(e))
@@ -179,5 +185,8 @@ if __name__ == '__main__':
     root.geometry("1200x600")
     root.title("Image Captioning")
     controller = ModeController(root)
+
+    # set default as prediction screen
+    controller.prediction_screen()
 
     root.mainloop()
