@@ -5,5 +5,5 @@
 - To use GUI:
 ```
 pip3 install -r requirements.txt
-python gui.py
+python gui_v2.py
 ```
